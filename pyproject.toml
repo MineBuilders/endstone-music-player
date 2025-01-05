@@ -5,7 +5,9 @@ build-backend = "hatchling.build"
 [project]
 name = "endstone-music-player"
 version = "0.0.1"
-dependencies = []
+dependencies = [
+    "pynbs>=1.1.0",
+]
 authors = [
     { name = "MineBuilder" },
 ]
@@ -18,4 +20,4 @@ keywords = ["endstone", "plugin", "nbs", "player"]
 Homepage = "https://github.com/MineBuilders/endstonemc-music-player"
 
 [project.entry-points."endstone"]
-example = "endstone_music_player:MusicPlugin"
+music-player = "endstone_music_player:MusicPlugin"

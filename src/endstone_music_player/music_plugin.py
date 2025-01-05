@@ -1,91 +1,67 @@
-import datetime
+import pynbs
+import time
+import threading
 
 from endstone.command import Command, CommandSender
-from endstone.event import EventPriority, ServerLoadEvent, event_handler
 from endstone.plugin import Plugin
 
-from endstone_music_player.example_listener import ExampleListener
-from endstone_music_player.python_command import PythonCommandExecutor
-
 class MusicPlugin(Plugin):
-    prefix = "PythonExamplePlugin"
+    prefix = "MusicPlayerPlugin"
     api_version = "0.5"
     load = "POSTWORLD"
 
     commands = {
-        "python": {
-            "description": "Zen of python",
-            "usages": ["/python"],
-            "aliases": ["py"],
-            "permissions": ["python_example.command.python"],
-        },
-        "kickme": {
-            "description": "Ask the server to kick you with a custom message",
-            "usages": ["/kickme [reason: message]"],
-            "permissions": ["python_example.command.kickme"],
+        "music-player": {
+            "description": "Play music to everyone.",
+            "usages": ["/music-player <path: message>"],
+            "permissions": ["music_player.command.music_player"],
         },
     }
 
     permissions = {
-        "python_example.command": {
-            "description": "Allow users to use all commands provided by this plugin.",
-            "default": True,
-            "children": {
-                "python_example.command.python": True,
-                "python_example.command.kickme": True,
-            },
-        },
-        "python_example.command.python": {
-            "description": "Allow users to use the /python command.",
+        "music_player.command.music_player": {
+            "description": "Allow users to use the /music-player command.",
             "default": "op",
-        },
-        "python_example.command.kickme": {
-            "description": "Allow users to use the /kickme command.",
-            "default": True,
         },
     }
 
+    INSTRUMENTS = {
+        0:  'note.harp',           1:  'note.bassattack',
+        2:  'note.bd',             3:  'note.snare',
+        4:  'note.hat',            5:  'note.guitar',
+        6:  'note.flute',          7:  'note.bell',
+        8:  'note.chime',          9:  'note.xylobone',
+        10: 'note.iron_xylophone', 11: 'note.cow_bell',
+        12: 'note.didgeridoo',     13: 'note.bit',
+        14: 'note.banjo',          15: 'note.pling',
+    }
+
     def on_load(self) -> None:
-        self.logger.info("on_load is called!")
+        return
 
     def on_enable(self) -> None:
-        self.logger.info("on_enable is called!")
-        self.get_command("python").executor = PythonCommandExecutor()
-
-        self.register_events(self)  # register event listeners defined directly in Plugin class
-        self.register_events(ExampleListener(self))  # you can also register event listeners in a separate class
-
-        self.server.scheduler.run_task(self, self.log_time, delay=0, period=20 * 1)  # every second
+        self.register_events(self)
 
     def on_disable(self) -> None:
-        self.logger.info("on_disable is called!")
+        return
 
-    def on_command(self, sender: CommandSender, command: Command, args: list[str]) -> bool:
-        # You can also handle commands here instead of setting an executor in on_enable if you prefer
-        match command.name:
-            case "kickme":
-                player = sender.as_player()
-                if player is None:
-                    sender.send_error_message("You must be a player to execute this command.")
-                    return False
+    def on_command(self, sender: CommandSender, _: Command, args: list[str]) -> bool:
+        path = args[0]
+        path = "D:/Users/Cdm2883/Achieved/Projects/brid-geo-old/bridgeo-data/data/nbs-player/3/第五人格推理之径.nbs"
 
-                if len(args) > 0:
-                    player.kick(args[0])
-                else:
-                    player.kick("You asked for it!")
-
+        def play():
+            nbs = pynbs.read(path)
+            for _, chord in nbs:
+                for note in chord:
+                    try:
+                        sound = self.INSTRUMENTS[note.instrument]
+                        volume = note.velocity
+                        pitch = (2 ** ((note.key + (note.pitch / 100) - 45) / 12))
+                        self.server.dispatch_command(sender, f"/execute as @a at @s run playsound {sound} @s ~~~ {volume} {pitch}")
+                    except KeyError:
+                        print(f"Wtf inst: {note.instrument}")
+                time.sleep(nbs.header.tempo / 20)
+        thread = threading.Thread(target=play)
+        thread.daemon = True
+        thread.start()
         return True
-
-    @event_handler
-    def on_server_load(self, event: ServerLoadEvent):
-        self.logger.info(f"{event.event_name} is passed to on_server_load")
-
-    @event_handler(priority=EventPriority.HIGH)
-    def on_server_load_2(self, event: ServerLoadEvent):
-        # this will be called after on_server_load because of a higher priority
-        self.logger.info(f"{event.event_name} is passed to on_server_load2")
-
-    def log_time(self):
-        now = datetime.datetime.now().strftime("%c")
-        for player in self.server.online_players:
-            player.send_popup(now)
