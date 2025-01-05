@@ -3,19 +3,19 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "endstone-example"
-version = "0.4.0"
+name = "endstone-music-player"
+version = "0.0.1"
 dependencies = []
 authors = [
-    { name = "Endstone Developers", email = "hello@endstone.dev" },
+    { name = "MineBuilder" },
 ]
-description = "Python example plugin for Endstone servers"
+description = "'Sounds' Good with Endstone!"
 readme = "README.md"
 license = { file = "LICENSE" }
-keywords = ["endstone", "plugin"]
+keywords = ["endstone", "plugin", "nbs", "player"]
 
 [project.urls]
-Homepage = "https://github.com/EndstoneMC/python-example-plugin"
+Homepage = "https://github.com/MineBuilders/endstonemc-music-player"
 
 [project.entry-points."endstone"]
-example = "endstone_example:ExamplePlugin"
+example = "endstone_music_player:MusicPlugin"

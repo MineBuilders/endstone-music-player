@@ -4,11 +4,10 @@ from endstone.command import Command, CommandSender
 from endstone.event import EventPriority, ServerLoadEvent, event_handler
 from endstone.plugin import Plugin
 
-from endstone_example.example_listener import ExampleListener
-from endstone_example.python_command import PythonCommandExecutor
+from endstone_music_player.example_listener import ExampleListener
+from endstone_music_player.python_command import PythonCommandExecutor
 
-
-class ExamplePlugin(Plugin):
+class MusicPlugin(Plugin):
     prefix = "PythonExamplePlugin"
     api_version = "0.5"
     load = "POSTWORLD"
