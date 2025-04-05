@@ -1,6 +1,7 @@
 import math
 import random
 from enum import Enum, auto
+from functools import cache
 from numbers import Number
 
 from endstone import Player
@@ -71,10 +72,15 @@ class MusicPlayer(MusicPlayerData):
             if sound is None: continue
             volume = note.velocity
             pitch = 2 ** ((note.key + (note.pitch / 100) - 45) / 12)
-            for listener in self.listeners:
-                self.plugin.logger.debug(f"{listener.name} {self.tick} : playsound {sound} <- {volume} {pitch}")
-                self.plugin.server.dispatch_command(listener, f"/execute as @s at @s run playsound {sound} @s ~~~ {volume} {pitch}")
-                # listener.play_sound(listener.location, sound, volume, pitch)
+            for i in range(len(self.listeners) - 1, -1, -1):
+                listener = self.listeners[i]
+                try:
+                    self.plugin.logger.debug(f"{listener.name} {self.tick} : playsound {sound} <- {volume} {pitch}")
+                    self.plugin.server.dispatch_command(listener, f"/execute as @s at @s run playsound {sound} @s ~~~ {volume} {pitch}")
+                    # listener.play_sound(listener.location, sound, volume, pitch)
+                except RuntimeError:
+                    del self.listeners[i]
+                    if len(self.listeners) == 0: self.pause()
         self.tick += 1
         if self.tick >= self.song.to_nbs().header.song_length:
             self.next()
