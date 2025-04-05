@@ -6,7 +6,7 @@ from endstone.command import Command, CommandSender
 from endstone.plugin import Plugin
 
 class MusicPlugin(Plugin):
-    prefix = "MusicPlayerPlugin"
+    prefix = "MusicPlayer"
     api_version = "0.5"
     load = "POSTWORLD"
 

@@ -6,3 +6,5 @@
 # Python
 dist/
 venv/
+
+bedrock_server/
