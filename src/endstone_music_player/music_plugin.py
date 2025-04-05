@@ -1,9 +1,5 @@
-import pynbs
-import time
-import threading
-
-from endstone.command import Command, CommandSender
 from endstone.plugin import Plugin
+
 
 class MusicPlugin(Plugin):
     prefix = "MusicPlayer"
@@ -12,56 +8,46 @@ class MusicPlugin(Plugin):
 
     commands = {
         "music-player": {
-            "description": "Play music to everyone.",
-            "usages": ["/music-player <path: message>"],
+            "description": "'Sounds' Good with Endstone!",
+            "usages": [
+                "/music-player",
+                "/music-player play [path:message]",
+                "/music-player <add|remove> <path:message>",
+                "/music-player <list|next|pause|reset>",
+            ],
+            "aliases": ["songs", "mp"],
             "permissions": ["music_player.command.music_player"],
         },
+        "music-player-global": {
+            "description": "Play music for everyone!",
+            "usages": [
+                "/music-player-global",
+                "/music-player-global play [path:message]",
+                "/music-player-global <list|next|reset|pause>",
+            ],
+            "aliases": ["songs-g", "mpg"],
+            "permissions": ["music_player.command.music_player_global"],
+        }
     }
 
     permissions = {
         "music_player.command.music_player": {
             "description": "Allow users to use the /music-player command.",
+            "default": True,
+        },
+        "music_player.command.music_player_global": {
+            "description": "Allow users to use the /music-player-global command.",
             "default": "op",
         },
-    }
-
-    INSTRUMENTS = {
-        0:  'note.harp',           1:  'note.bassattack',
-        2:  'note.bd',             3:  'note.snare',
-        4:  'note.hat',            5:  'note.guitar',
-        6:  'note.flute',          7:  'note.bell',
-        8:  'note.chime',          9:  'note.xylobone',
-        10: 'note.iron_xylophone', 11: 'note.cow_bell',
-        12: 'note.didgeridoo',     13: 'note.bit',
-        14: 'note.banjo',          15: 'note.pling',
     }
 
     def on_load(self) -> None:
         return
 
     def on_enable(self) -> None:
-        self.register_events(self)
+        from endstone_music_player.music_command import MusicCommandPersonal, MusicCommandGlobal
+        self.get_command("music-player").executor = MusicCommandPersonal(self)
+        self.get_command("music-player-global").executor = MusicCommandGlobal(self)
 
     def on_disable(self) -> None:
         return
-
-    def on_command(self, sender: CommandSender, _: Command, args: list[str]) -> bool:
-        path = args[0]
-        path = "D:/Users/Cdm2883/Achieved/Projects/brid-geo-old/bridgeo-data/data/nbs-player/3/第五人格推理之径.nbs"
-
-        def play():
-            nbs = pynbs.read(path)
-            for _, chord in nbs:
-                for note in chord:
-                    try:
-                        sound = self.INSTRUMENTS[note.instrument]
-                        volume = note.velocity
-                        pitch = (2 ** ((note.key + (note.pitch / 100) - 45) / 12))
-                        self.server.dispatch_command(sender, f"/execute as @a at @s run playsound {sound} @s ~~~ {volume} {pitch}")
-                    except KeyError:
-                        print(f"Wtf inst: {note.instrument}")
-                time.sleep(nbs.header.tempo / 20)
-        thread = threading.Thread(target=play)
-        thread.daemon = True
-        thread.start()
-        return True
