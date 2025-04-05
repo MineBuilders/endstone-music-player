@@ -12,7 +12,9 @@ class MusicPlugin(Plugin):
             "usages": [
                 "/music-player",
                 "/music-player play [path:message]",
-                "/music-player <add|remove> <path:message>",
+                "/music-player add <path:message>",
+                "/music-player remove <index:int>",
+                "/music-player order <sequence|random|repeat_one|repeat_list>",
                 "/music-player <list|next|pause|reset>",
             ],
             "aliases": ["songs", "mp"],
@@ -23,7 +25,10 @@ class MusicPlugin(Plugin):
             "usages": [
                 "/music-player-global",
                 "/music-player-global play [path:message]",
-                "/music-player-global <list|next|reset|pause>",
+                "/music-player-global add <path:message>",
+                "/music-player-global remove <index:int>",
+                "/music-player-global order <sequence|random|repeat_one|repeat_list>",
+                "/music-player-global <list|next|pause|reset>",
             ],
             "aliases": ["songs-g", "mpg"],
             "permissions": ["music_player.command.music_player_global"],
