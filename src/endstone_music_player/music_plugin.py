@@ -50,4 +50,6 @@ class MusicPlugin(Plugin):
         self.get_command("music-player-global").executor = MusicCommandGlobal(self)
 
     def on_disable(self) -> None:
+        from endstone_music_player.music_storage import MusicPlayerStorage
+        MusicPlayerStorage.save(self)
         return

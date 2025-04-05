@@ -1,8 +1,13 @@
 import json
+import os
 from dataclasses import dataclass, field
 
+from endstone import Player
+
+from endstone_music_player import MusicPlugin
 from endstone_music_player.music_player import PlayOrder
 from endstone_music_player.songs.song import Song
+
 
 @dataclass
 class MusicPlayerData:
@@ -20,6 +25,7 @@ class MusicPlayerData:
         self.songs = source.songs
         self.song = source.song
         self.tick = source.tick
+        return self
 
     def encode(self):
         songs = [[song.__class__.__name__, song.encode()] for song in self.songs]
@@ -49,3 +55,47 @@ class MusicPlayerData:
             copy.song = copy.songs[data["song"]]
         copy.tick = data["tick"]
         return copy
+
+
+class MusicPlayerStorage:
+    ROOT_PATH = "plugins/music_player"
+    DATA_DICT = {}
+    GLOBAL_KEY = "GLOBAL"
+
+    @staticmethod
+    def get(plugin: MusicPlugin, player: Player):
+        from endstone_music_player.music_player import MusicPlayer
+        key = player.unique_id.hex
+        cache = MusicPlayerStorage.DATA_DICT.get(key)
+        if cache is not None: return cache
+        cache = MusicPlayerStorage.read_raw(key)
+        cache = MusicPlayer(plugin).copy(cache)
+        cache.listeners.append(player)
+        MusicPlayerStorage.DATA_DICT[key] = cache
+        return cache
+
+    @staticmethod
+    def save(plugin: MusicPlugin):
+        for key, value in MusicPlayerStorage.DATA_DICT.items():
+            MusicPlayerStorage.write_raw(key, value)
+        from endstone_music_player.music_player_global import MusicPlayerGlobal
+        MusicPlayerStorage.write_raw(MusicPlayerStorage.GLOBAL_KEY, MusicPlayerGlobal(plugin))
+
+    @staticmethod
+    def read_raw(name: str):
+        file_path = MusicPlayerStorage._resolve(name)
+        try:
+            with open(file_path, 'r') as file:
+                return MusicPlayerData.decode(file.read())
+        except FileNotFoundError:
+            return MusicPlayerData()
+
+    @staticmethod
+    def write_raw(name: str, data: MusicPlayerData):
+        file_path = MusicPlayerStorage._resolve(name)
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        with open(file_path, 'w') as file: file.write(data.encode())
+
+    @staticmethod
+    def _resolve(name: str):
+        return os.path.join(MusicPlayerStorage.ROOT_PATH, name + '.json')
