@@ -5,7 +5,7 @@ from numbers import Number
 
 from endstone import Player
 from endstone.scheduler import Task
-from pynbs import File, Note
+from pynbs import Note
 
 from endstone_music_player import MusicPlugin
 
@@ -17,7 +17,11 @@ class PlayOrder(Enum):
     REPEAT_LIST = auto()
 
 
-class MusicPlayer:
+from endstone_music_player.music_storage import MusicPlayerData
+from endstone_music_player.songs.song import Song
+
+
+class MusicPlayer(MusicPlayerData):
     INSTRUMENTS = {
         0: 'note.harp', 1: 'note.bassattack',
         2: 'note.bd', 3: 'note.snare',
@@ -30,17 +34,14 @@ class MusicPlayer:
     }
 
     def __init__(self, plugin: MusicPlugin):
+        super().__init__()
         self.plugin = plugin
         self.listeners: list[Player] | None = []
-        self.order = PlayOrder.SEQUENCE
-        self.songs: list[File] = []
-        self.song: File | None = None
         self._notes: dict[Number, list[Note]] | None = None
         self._task: Task | None = None
         self.playing = False
-        self.tick = 0
 
-    def play(self, song: File | None = None):
+    def play(self, song: Song | None = None):
         print("play")
         if song is not None:
             self.reset()
@@ -52,20 +53,20 @@ class MusicPlayer:
             return
 
         self.pause()
-        self._notes = dict(self.song)
+        self._notes = dict(self.song.to_nbs())
         self.playing = True
         self._task = self.plugin.server.scheduler.run_task(
             self.plugin,
             lambda: self._frame(),
             0,
-            math.ceil(20 / self.song.header.tempo)
+            math.ceil(20 / self.song.to_nbs().header.tempo)
         )
 
     def _frame(self):
         print(f"_frame {self.tick}")
         notes = self._notes.get(self.tick)
         for note in notes or []:
-            if self.song.layers[note.layer].lock: continue
+            if self.song.to_nbs().layers[note.layer].lock: continue
             sound = self.INSTRUMENTS.get(note.instrument)
             if sound is None: continue
             volume = note.velocity
@@ -75,7 +76,7 @@ class MusicPlayer:
                 self.plugin.server.dispatch_command(listener, f"/execute as @s at @s run playsound {sound} @s ~~~ {volume} {pitch}")
                 # listener.play_sound(listener.location, sound, volume, pitch)
         self.tick += 1
-        if self.tick >= self.song.header.song_length:
+        if self.tick >= self.song.to_nbs().header.song_length:
             self.next()
 
     def next(self):

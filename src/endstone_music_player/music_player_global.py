@@ -4,8 +4,8 @@ from endstone_music_player.utils import singleton
 
 @singleton
 class MusicPlayerGlobal(MusicPlayer):
-    def __init__(self, server):
-        super().__init__(server)
+    def __init__(self, plugin):
+        super().__init__(plugin)
         self.listeners = None
 
     def play(self, song = None):
