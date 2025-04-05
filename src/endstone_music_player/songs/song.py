@@ -12,6 +12,10 @@ class Song(ABC):
         ]
 
     @abstractmethod
+    def get_readable_name(self) -> str:
+        pass
+
+    @abstractmethod
     def to_nbs(self) -> File:
         pass
 

@@ -39,7 +39,7 @@ class MusicCommand(CommandExecutor):
                     case "repeat_list": music.order = PlayOrder.REPEAT_LIST
             case ["list"]:
                 for index, song in enumerate(music.songs):
-                    sender.send_message(f"{index}: {song.encode()}")
+                    sender.send_message(f"{index}: {song.get_readable_name()}")
             case ["next"]: music.next()
             case ["pause"]: music.pause()
             case ["reset"]: music.reset()
