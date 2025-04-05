@@ -42,7 +42,7 @@ class MusicPlayer(MusicPlayerData):
         self.playing = False
 
     def play(self, song: Song | None = None):
-        print("play")
+        self.plugin.logger.debug("play")
         if song is not None:
             self.reset()
             self.song = song
@@ -63,7 +63,7 @@ class MusicPlayer(MusicPlayerData):
         )
 
     def _frame(self):
-        print(f"_frame {self.tick}")
+        self.plugin.logger.debug(f"_frame {self.tick}")
         notes = self._notes.get(self.tick)
         for note in notes or []:
             if self.song.to_nbs().layers[note.layer].lock: continue
@@ -72,7 +72,7 @@ class MusicPlayer(MusicPlayerData):
             volume = note.velocity
             pitch = 2 ** ((note.key + (note.pitch / 100) - 45) / 12)
             for listener in self.listeners:
-                print(f"{listener.name} {self.tick} : playsound {sound} <- {volume} {pitch}")
+                self.plugin.logger.debug(f"{listener.name} {self.tick} : playsound {sound} <- {volume} {pitch}")
                 self.plugin.server.dispatch_command(listener, f"/execute as @s at @s run playsound {sound} @s ~~~ {volume} {pitch}")
                 # listener.play_sound(listener.location, sound, volume, pitch)
         self.tick += 1
@@ -80,7 +80,7 @@ class MusicPlayer(MusicPlayerData):
             self.next()
 
     def next(self):
-        print("next")
+        self.plugin.logger.debug("next")
         self.reset()
         if len(self.songs) == 0:
             return
@@ -103,13 +103,13 @@ class MusicPlayer(MusicPlayerData):
             self.song = None
 
     def reset(self):
-        print("reset")
+        self.plugin.logger.debug("reset")
         self.pause()
         self._notes = None
         self.tick = 0
 
     def pause(self):
-        print("pause")
+        self.plugin.logger.debug("pause")
         self.playing = False
         if self._task is not None: self._task.cancel()
         self._task = None
