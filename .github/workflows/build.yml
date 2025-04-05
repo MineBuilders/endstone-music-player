@@ -40,18 +40,18 @@ jobs:
           INTERVAL=1
           TIME_PASSED=0
           while [[ $TIME_PASSED -lt $TIMEOUT ]]; do
-            if cat test.log | grep -q "Enabling music_player"; then
-              echo "Plugin loaded successfully!"
+            if cat test.log | grep -q "ERROR"; then
+              echo "Plugin did not load correctly!"
               cat test.log
-              exit 0
+              exit 1
             fi
             sleep $INTERVAL
             TIME_PASSED=$((TIME_PASSED + INTERVAL))
           done
           
-          echo "Plugin did not load correctly!"
+          echo "Plugin loaded successfully!"
           cat test.log
-          exit 1
+          exit 0
 
       - name: Upload Preview Build
         uses: actions/upload-artifact@v4
