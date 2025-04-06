@@ -32,7 +32,9 @@ class MusicCommand(CommandExecutor):
             case ["add", path]:
                 song = resolve_song(path)
                 if song is None: sender.send_error_message("Could not resolve this song!")
-                else: music.songs.append(song)
+                else:
+                    music.songs.append(song)
+                    sender.send_message(f"{song.get_readable_name()} added to the playlist!")
             case ["remove", index]:
                 del music.songs[int(index)]
             case ["order", order]:
