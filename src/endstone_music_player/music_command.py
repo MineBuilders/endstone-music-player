@@ -6,7 +6,7 @@ from endstone_music_player.music_gui import MusicGui
 from endstone_music_player.music_player import MusicPlayer, PlayOrder
 from endstone_music_player.music_player_global import MusicPlayerGlobal
 from endstone_music_player.music_storage import MusicPlayerStorage
-from endstone_music_player.songs.song_nbs import SongNbsFile
+from endstone_music_player.songs.song import Song
 
 
 class MusicCommand(CommandExecutor):
@@ -25,10 +25,14 @@ class MusicCommand(CommandExecutor):
         match args:
             case ["play", *rest]:
                 path = next(iter(rest), None)
-                if path is not None: music.play(SongNbsFile(path))
-                else: music.play()
+                song = resolve_song(path)
+                if path is None: music.play()
+                elif song is None: sender.send_error_message("Could not resolve this song!")
+                else: music.play(song)
             case ["add", path]:
-                music.songs.append(SongNbsFile(path))
+                song = resolve_song(path)
+                if song is None: sender.send_error_message("Could not resolve this song!")
+                else: music.songs.append(song)
             case ["remove", index]:
                 del music.songs[int(index)]
             case ["order", order]:
@@ -37,6 +41,7 @@ class MusicCommand(CommandExecutor):
                     case "random": music.order = PlayOrder.RANDOM
                     case "repeat_one": music.order = PlayOrder.REPEAT_ONE
                     case "repeat_list": music.order = PlayOrder.REPEAT_LIST
+                sender.send_message(f"Switch to {music.order.name}.")
             case ["list"]:
                 for index, song in enumerate(music.songs):
                     sender.send_message(f"{index}: {song.get_readable_name()}")
@@ -44,6 +49,13 @@ class MusicCommand(CommandExecutor):
             case ["pause"]: music.pause()
             case ["reset"]: music.reset()
         return True
+
+def resolve_song(arg: str):
+    if arg is None: return None
+    for clazz in Song.get_types():
+        song = clazz.load_from_command(arg)
+        if song is not None: return song
+    return None
 
 class MusicCommandPersonal(MusicCommand):
     def get_music(self, sender):

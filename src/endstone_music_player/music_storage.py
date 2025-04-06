@@ -59,6 +59,9 @@ class MusicPlayerData:
 
 class MusicPlayerStorage:
     ROOT_PATH = "plugins/music_player"
+    SONGS_ROOT_PATH = ROOT_PATH + "/songs"
+    SONGS_CACHE_PATH = ROOT_PATH + "/.cache"
+    PLAYER_CACHE_PATH = ROOT_PATH + "/.player"
     DATA_DICT = {}
     GLOBAL_KEY = "GLOBAL"
 
@@ -83,7 +86,7 @@ class MusicPlayerStorage:
 
     @staticmethod
     def read_raw(name: str):
-        file_path = MusicPlayerStorage._resolve(name)
+        file_path = _resolve_player_cache(name)
         try:
             with open(file_path, 'r') as file:
                 return MusicPlayerData.decode(file.read())
@@ -92,10 +95,15 @@ class MusicPlayerStorage:
 
     @staticmethod
     def write_raw(name: str, data: MusicPlayerData):
-        file_path = MusicPlayerStorage._resolve(name)
+        file_path = _resolve_player_cache(name)
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
         with open(file_path, 'w') as file: file.write(data.encode())
 
-    @staticmethod
-    def _resolve(name: str):
-        return os.path.join(MusicPlayerStorage.ROOT_PATH, name + '.json')
+def resolve_songs(path: str):
+    return os.path.join(MusicPlayerStorage.SONGS_ROOT_PATH, path)
+
+def resolve_songs_cache(path: str):
+    return os.path.join(MusicPlayerStorage.SONGS_CACHE_PATH, path)
+
+def _resolve_player_cache(name: str):
+    return os.path.join(MusicPlayerStorage.PLAYER_CACHE_PATH, name + '.json')

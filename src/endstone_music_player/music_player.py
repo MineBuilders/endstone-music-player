@@ -1,7 +1,6 @@
 import math
 import random
 from enum import Enum, auto
-from functools import cache
 from numbers import Number
 
 from endstone import Player

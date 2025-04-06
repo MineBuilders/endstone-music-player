@@ -1,3 +1,5 @@
+import os
+
 from endstone.plugin import Plugin
 
 
@@ -53,6 +55,8 @@ class MusicPlugin(Plugin):
         from endstone_music_player.music_command import MusicCommandPersonal, MusicCommandGlobal
         self.get_command("music-player").executor = MusicCommandPersonal(self)
         self.get_command("music-player-global").executor = MusicCommandGlobal(self)
+        from endstone_music_player.music_storage import MusicPlayerStorage
+        os.makedirs(MusicPlayerStorage.SONGS_ROOT_PATH, exist_ok=True)
 
     def on_disable(self) -> None:
         from endstone_music_player.music_storage import MusicPlayerStorage

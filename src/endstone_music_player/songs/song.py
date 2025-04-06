@@ -15,6 +15,11 @@ class Song(ABC):
     def get_readable_name(self) -> str:
         pass
 
+    @staticmethod
+    @abstractmethod
+    def load_from_command(arg: str) -> "Song | None":
+        pass
+
     @abstractmethod
     def to_nbs(self) -> File:
         pass
