@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 import pynbs
@@ -21,8 +22,13 @@ class SongNbsFile(Song):
     @staticmethod
     def load_from_command(arg):
         path = Path(resolve_songs(arg + '.nbs'))
-        return SongNbsFile(str(path)) \
-            if path.is_file() else None
+        if path.is_file(): return SongNbsFile(str(path))
+        name = (arg + '.nbs').lower()
+        for root, _dirs, files in os.walk(path):
+            for file in files:
+                if file.lower() == name:
+                    return SongNbsFile(os.path.join(root, file))
+        return None
 
     def to_nbs(self):
         return self.nbs
