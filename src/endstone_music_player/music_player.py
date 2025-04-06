@@ -75,7 +75,7 @@ class MusicPlayer(MusicPlayerData):
                 listener = self.listeners[i]
                 try:
                     self.plugin.logger.debug(f"{listener.name} {self.tick} : playsound {sound} <- {volume} {pitch}")
-                    self.plugin.server.dispatch_command(listener, f"/execute as @s at @s run playsound {sound} @s ~~~ {volume} {pitch}")
+                    self.plugin.server.dispatch_command(listener, f"/playsound {sound} @s ~~~ {volume} {pitch}")
                     # listener.play_sound(listener.location, sound, volume, pitch)
                 except RuntimeError:
                     del self.listeners[i]
