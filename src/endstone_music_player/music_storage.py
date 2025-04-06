@@ -99,11 +99,14 @@ class MusicPlayerStorage:
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
         with open(file_path, 'w') as file: file.write(data.encode())
 
+
 def resolve_songs(path: str):
     return os.path.join(MusicPlayerStorage.SONGS_ROOT_PATH, path)
 
+
 def resolve_songs_cache(path: str):
     return os.path.join(MusicPlayerStorage.SONGS_CACHE_PATH, path)
+
 
 def _resolve_player_cache(name: str):
     return os.path.join(MusicPlayerStorage.PLAYER_CACHE_PATH, name + '.json')

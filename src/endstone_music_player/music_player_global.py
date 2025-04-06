@@ -10,7 +10,7 @@ class MusicPlayerGlobal(MusicPlayer):
         self.listeners = None
         self.copy(MusicPlayerStorage.read_raw(MusicPlayerStorage.GLOBAL_KEY))
 
-    def play(self, song = None):
+    def play(self, song=None):
         self.listeners = self.plugin.server.online_players
         for player in MusicPlayerStorage.DATA_DICT.values():
             player.pause()

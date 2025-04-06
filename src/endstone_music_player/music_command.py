@@ -50,6 +50,7 @@ class MusicCommand(CommandExecutor):
             case ["reset"]: music.reset()
         return True
 
+
 def resolve_song(arg: str):
     if arg is None: return None
     for clazz in Song.get_types():
@@ -57,9 +58,11 @@ def resolve_song(arg: str):
         if song is not None: return song
     return None
 
+
 class MusicCommandPersonal(MusicCommand):
     def get_music(self, sender):
         return MusicPlayerStorage.get(self.plugin, sender)
+
 
 class MusicCommandGlobal(MusicCommand):
     def get_music(self, sender):
