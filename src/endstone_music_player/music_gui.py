@@ -1,8 +1,10 @@
+import json
+
 from endstone import Player, ColorFormat
 from endstone.form import ActionForm, Dropdown, Label, MessageForm, ModalForm, Slider, StepSlider, TextInput, Toggle
 
 from endstone_music_player import MusicPlugin
-from endstone_music_player.music_player import MusicPlayer
+from endstone_music_player.music_player import MusicPlayer, PlayOrder
 from endstone_music_player.songs.song import Song
 
 
@@ -19,7 +21,7 @@ class MusicGui:
         else:
             form.content = ColorFormat.BOLD + "> " + ColorFormat.YELLOW
             form.content += self.music.song.get_readable_name() + ColorFormat.RESET + "\n"
-            bar_size = 100
+            bar_size = 99
             progress = int(bar_size * (self.music.tick / self.music.song.to_nbs().header.song_length))
             form.content += ColorFormat.DARK_GREEN + "|" * (progress - 1)
             form.content += ColorFormat.BOLD + ColorFormat.GREEN + "|" + ColorFormat.RESET
@@ -33,8 +35,32 @@ class MusicGui:
         form = ModalForm(f"{ColorFormat.BOLD + ColorFormat.GOLD}Control Panel")
         form.on_close = lambda _: self.main()
         form.submit_button = "Apply"
-        form.add_control(Label("Control Panel is not available yet."))
-        form.add_control(Label("Use command instead plz!!!"))
+        form.add_control(Label(f"Playing: {self.music.song.get_readable_name()}" if self.music.playing else "Nothing playing."))
+        form.add_control(StepSlider("Music Player", ["Reset", "Pause", "Do nothing", "Play", "Next"], 2))
+        form.add_control(StepSlider("Play Order", ["Sequence", "Random", "Repeat one", "Repeat list"],
+                                  0 if self.music.order == PlayOrder.SEQUENCE else
+                                  1 if self.music.order == PlayOrder.RANDOM else
+                                  2 if self.music.order == PlayOrder.REPEAT_ONE else 3))
+        default_playback_progress = int(self.music.tick / self.music.song.to_nbs().header.song_length * 1000)
+        if self.music.playing:
+            form.add_control(Slider("Playback Progress (‰)", min=0, max=1000, step=1, default_value=default_playback_progress))
+
+        def on_submit(data):
+            if self.music.playing and data[2] != default_playback_progress:
+                self.music.tick = int(data[2] / 1000.0 * self.music.song.to_nbs().header.song_length)
+            match data[1]:
+                case 0: self.music.order = PlayOrder.SEQUENCE
+                case 1: self.music.order = PlayOrder.RANDOM
+                case 2: self.music.order = PlayOrder.REPEAT_ONE
+                case 3: self.music.order = PlayOrder.REPEAT_LIST
+            match data[0]:
+                case 0: self.music.reset()
+                case 1: self.music.pause()
+                case 3: self.music.play()
+                case 4: self.music.next()
+            self.main()
+
+        form.on_submit = lambda _, data: on_submit(json.loads(data))
         self.player.send_form(form)
 
     def list(self, page_num=1, page_size=8):
@@ -60,7 +86,7 @@ class MusicGui:
 
     def song(self, song: Song, back=None):
         form = ActionForm(f"{ColorFormat.BOLD + ColorFormat.GOLD}Song")
-        form.on_close = lambda _: (back or (lambda : self.main()))()
+        form.on_close = lambda _: (back or (lambda: self.main()))()
         form.content = song.get_readable_name()
         def play_now():
             self.music.play(song)
@@ -72,7 +98,7 @@ class MusicGui:
                 local_form.content = f"Remove {song.get_readable_name()} ?"
                 local_form.on_close = lambda _: self.song(song, back)
                 local_form.button1 = "Yes"
-                local_form.on_submit = lambda _, i: (self.music.songs.remove(song), form.on_close(self.player))\
+                local_form.on_submit = lambda _, i: (self.music.songs.remove(song), form.on_close(self.player)) \
                     if i == 0 else local_form.on_close(self.player)
                 local_form.button2 = "No"
                 self.player.send_form(local_form)
